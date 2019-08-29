@@ -15,8 +15,8 @@
  */
 package io.vertx.cassandra.impl;
 
-import com.datastax.driver.core.ColumnDefinitions;
-import com.datastax.driver.core.Row;
+import com.datastax.oss.driver.api.core.cql.ColumnDefinitions;
+import com.datastax.oss.driver.api.core.cql.Row;
 import io.vertx.cassandra.ResultSet;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.*;
@@ -33,33 +33,35 @@ import static io.vertx.cassandra.impl.Util.handleOnContext;
  */
 public class ResultSetImpl implements ResultSet {
 
-  private com.datastax.driver.core.ResultSet resultSet;
+  private com.datastax.oss.driver.api.core.cql.AsyncResultSet resultSet;
   private Vertx vertx;
 
-  public ResultSetImpl(com.datastax.driver.core.ResultSet resultSet, Vertx vertx) {
+  public ResultSetImpl(com.datastax.oss.driver.api.core.cql.AsyncResultSet resultSet, Vertx vertx) {
     this.resultSet = resultSet;
     this.vertx = vertx;
   }
 
   @Override
   public boolean isExhausted() {
-    return resultSet.isExhausted();
+    // There are no more pages to fetch and the current result set is returning null.
+    // resultSet.one() == null might change to resultSet.remaining() == 0;
+    return !resultSet.hasMorePages() && resultSet.one() == null;
   }
 
   @Override
   public boolean isFullyFetched() {
-    return resultSet.isFullyFetched();
+    return !resultSet.hasMorePages();
   }
 
   @Override
   public int getAvailableWithoutFetching() {
-    return resultSet.getAvailableWithoutFetching();
+    return resultSet.remaining();
   }
 
   @Override
   public ResultSet fetchMoreResults(Handler<AsyncResult<Void>> handler) {
     Context context = vertx.getOrCreateContext();
-    handleOnContext(resultSet.fetchMoreResults(), context, ignore -> null, handler);
+    handleOnContext(resultSet.fetchNextPage(), context, ignore -> null, handler);
     return this;
   }
 
@@ -72,9 +74,9 @@ public class ResultSetImpl implements ResultSet {
 
   @Override
   public ResultSet one(Handler<AsyncResult<Row>> handler) {
-    if (getAvailableWithoutFetching() == 0 && !resultSet.isFullyFetched()) {
+    if (getAvailableWithoutFetching() == 0 && !isFullyFetched()) {
       Context context = vertx.getOrCreateContext();
-      handleOnContext(resultSet.fetchMoreResults(), context, ignored -> resultSet.one(), handler);
+      handleOnContext(resultSet.fetchNextPage(), context, ignored -> resultSet.one(), handler);
     } else {
       handler.handle(Future.succeededFuture(resultSet.one()));
     }
@@ -157,14 +159,14 @@ public class ResultSetImpl implements ResultSet {
   }
 
   private void loadMore(Context context, List<Row> loaded, Handler<AsyncResult<List<Row>>> handler) {
-    int availableWithoutFetching = resultSet.getAvailableWithoutFetching();
+    int availableWithoutFetching = getAvailableWithoutFetching();
     List<Row> rows = new ArrayList<>(loaded.size() + availableWithoutFetching);
     for (int i = 0; i < availableWithoutFetching; i++) {
       rows.add(resultSet.one());
     }
 
-    if (!resultSet.isFullyFetched()) {
-      handleOnContext(resultSet.fetchMoreResults(), context, ar -> {
+    if (!isFullyFetched()) {
+      handleOnContext(fetchMoreResults(), context, ar -> {
         if (ar.succeeded()) {
           loadMore(context, rows, handler);
         } else {

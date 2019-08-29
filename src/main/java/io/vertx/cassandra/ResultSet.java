@@ -15,8 +15,8 @@
  */
 package io.vertx.cassandra;
 
-import com.datastax.driver.core.ColumnDefinitions;
-import com.datastax.driver.core.Row;
+import com.datastax.oss.driver.api.core.cql.ColumnDefinitions;
+import com.datastax.oss.driver.api.core.cql.Row;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.Nullable;
@@ -28,7 +28,7 @@ import io.vertx.core.Handler;
 import java.util.List;
 
 /**
- * It is like {@link com.datastax.driver.core.ResultSet}, but adapted for Vert.x.
+ * It is like {@link com.datastax.oss.driver.api.core.cql.ResultSet}, but adapted for Vert.x.
  *
  * @author Pavel Drankou
  * @author Thomas Segismont
@@ -37,23 +37,23 @@ import java.util.List;
 public interface ResultSet {
 
   /**
-   * @see com.datastax.driver.core.ResultSet#isExhausted()
+   * @see com.datastax.oss.driver.api.core.cql.ResultSet#isExhausted()
    */
   boolean isExhausted();
 
   /**
-   * @see com.datastax.driver.core.ResultSet#isFullyFetched()
+   * @see com.datastax.oss.driver.api.core.cql.ResultSet#isFullyFetched()
    */
   boolean isFullyFetched();
 
   /**
-   * @see com.datastax.driver.core.ResultSet#getAvailableWithoutFetching()
+   * @see com.datastax.oss.driver.api.core.cql.ResultSet#getAvailableWithoutFetching()
    */
   int getAvailableWithoutFetching();
 
   /**
    * @param handler handler called when result is fetched
-   * @see com.datastax.driver.core.ResultSet#fetchMoreResults()
+   * @see com.datastax.oss.driver.api.core.cql.ResultSet#fetchMoreResults()
    */
   @Fluent
   ResultSet fetchMoreResults(Handler<AsyncResult<Void>> handler);
@@ -68,7 +68,7 @@ public interface ResultSet {
    * This may lead to unexpected result.
    *
    * @param handler handler called when one row is fetched
-   * @see com.datastax.driver.core.ResultSet#one
+   * @see com.datastax.oss.driver.api.core.cql.ResultSet#one
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   @Fluent
@@ -108,7 +108,7 @@ public interface ResultSet {
    * This may lead to unexpected result.
    *
    * @param handler handler called when all the rows is fetched
-   * @see com.datastax.driver.core.ResultSet#all
+   * @see com.datastax.oss.driver.api.core.cql.ResultSet#all
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   @Fluent
@@ -121,13 +121,13 @@ public interface ResultSet {
   Future<List<Row>> all();
 
   /**
-   * @see com.datastax.driver.core.ResultSet#getColumnDefinitions
+   * @see com.datastax.oss.driver.api.core.cql.ResultSet#getColumnDefinitions
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   ColumnDefinitions getColumnDefinitions();
 
   /**
-   * @see com.datastax.driver.core.ResultSet#wasApplied
+   * @see com.datastax.oss.driver.api.core.cql.ResultSet#wasApplied
    */
   boolean wasApplied();
 }

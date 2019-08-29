@@ -15,10 +15,12 @@
  */
 package examples;
 
-import com.datastax.driver.core.BatchStatement;
-import com.datastax.driver.core.PreparedStatement;
-import com.datastax.driver.core.Row;
-import com.datastax.driver.core.SimpleStatement;
+import com.datastax.oss.driver.api.core.cql.BatchStatement;
+import com.datastax.oss.driver.api.core.cql.BatchType;
+import com.datastax.oss.driver.api.core.cql.DefaultBatchType;
+import com.datastax.oss.driver.api.core.cql.PreparedStatement;
+import com.datastax.oss.driver.api.core.cql.Row;
+import com.datastax.oss.driver.api.core.cql.SimpleStatement;
 import io.vertx.cassandra.*;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerResponse;
@@ -192,10 +194,10 @@ public class CassandraClientExamples {
   }
 
   public void batching(CassandraClient cassandraClient) {
-    BatchStatement batchStatement = new BatchStatement()
-      .add(new SimpleStatement("INSERT INTO NAMES (name) VALUES ('Pavel')"))
-      .add(new SimpleStatement("INSERT INTO NAMES (name) VALUES ('Thomas')"))
-      .add(new SimpleStatement("INSERT INTO NAMES (name) VALUES ('Julien')"));
+    BatchStatement batchStatement = BatchStatement.newInstance(DefaultBatchType.LOGGED)
+      .add(SimpleStatement.newInstance("INSERT INTO NAMES (name) VALUES ('Pavel')"))
+      .add(SimpleStatement.newInstance("INSERT INTO NAMES (name) VALUES ('Thomas')"))
+      .add(SimpleStatement.newInstance("INSERT INTO NAMES (name) VALUES ('Julien')"));
 
     cassandraClient.execute(batchStatement, result -> {
       if (result.succeeded()) {

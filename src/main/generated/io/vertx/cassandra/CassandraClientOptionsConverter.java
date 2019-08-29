@@ -25,10 +25,10 @@ public class CassandraClientOptionsConverter implements JsonCodec<CassandraClien
       switch (member.getKey()) {
         case "contactPoints":
           if (member.getValue() instanceof JsonArray) {
-            java.util.ArrayList<java.lang.String> list =  new java.util.ArrayList<>();
+            java.util.ArrayList<io.vertx.core.json.JsonObject> list =  new java.util.ArrayList<>();
             ((Iterable<Object>)member.getValue()).forEach( item -> {
-              if (item instanceof String)
-                list.add((String)item);
+              if (item instanceof JsonObject)
+                list.add(((JsonObject)item).copy());
             });
             obj.setContactPoints(list);
           }
@@ -36,11 +36,6 @@ public class CassandraClientOptionsConverter implements JsonCodec<CassandraClien
         case "keyspace":
           if (member.getValue() instanceof String) {
             obj.setKeyspace((String)member.getValue());
-          }
-          break;
-        case "port":
-          if (member.getValue() instanceof Number) {
-            obj.setPort(((Number)member.getValue()).intValue());
           }
           break;
       }
@@ -52,11 +47,6 @@ public class CassandraClientOptionsConverter implements JsonCodec<CassandraClien
   }
 
   public static void toJson(CassandraClientOptions obj, java.util.Map<String, Object> json) {
-    if (obj.getContactPoints() != null) {
-      JsonArray array = new JsonArray();
-      obj.getContactPoints().forEach(item -> array.add(item));
-      json.put("contactPoints", array);
-    }
     if (obj.getKeyspace() != null) {
       json.put("keyspace", obj.getKeyspace());
     }
